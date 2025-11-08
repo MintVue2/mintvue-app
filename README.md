@@ -7,9 +7,9 @@ Empower creators and fans to **own, share, and earn** from digital culture — a
 
 ## 🛠️ Features
 - **NFT Marketplace:** Mint, trade, and collect NFTs.
-- **Content Yield:** Creators earn **passive rewards** from their content’s engagement.
-- **Social Interaction:** Like, share, and comment on NFT content.
-- **DeFi Rewards:** Earn token rewards directly linked to NFT activity.
+- **Content Yield:** Creators earn **passive rewards** from their content.
+- **Social Interaction:** Like, share, and comment on content.
+- **DeFi Rewards:** Earn token rewards directly linked to content.
 - **TON Integration:** Fast, low-fee blockchain operations.
 - **Telegram WebApp Support:** Seamless interaction through Telegram.
 
