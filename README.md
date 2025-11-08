@@ -37,3 +37,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## 🔗 Links
 - [TON Blockchain](https://ton.org/)  
 - [Telegram WebApp Guide](https://core.telegram.org/bots/webapps)
+## 🚀 Getting Started
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/MintVue/mintvue-app.git
