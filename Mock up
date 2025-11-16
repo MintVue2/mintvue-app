@@ -1,0 +1,148 @@
+import React from "react";
+
+export default function MintVueEcosystemPage() {
+  const products = [
+    {
+      title: "Content 3.0",
+      subtitle: "The foundation of MintVue",
+      description:
+        "Creators upload photos, videos, text, livestreams, and every piece of content can evolve into a digital asset (NFT).",
+      features: [
+        "Virality metrics",
+        "Creator earnings",
+        "NFT value",
+        "Community engagement",
+      ],
+      color: "bg-purple-600",
+    },
+    {
+      title: "MintVue App",
+      subtitle: "Core Platform",
+      description:
+        "The social interface where creators and fans interact.",
+      features: [
+        "Upload content",
+        "Mint NFTs",
+        "Follow creators",
+        "Comment & engage",
+        "Manage wallets (TON Connect)",
+      ],
+      color: "bg-indigo-600",
+    },
+    {
+      title: "MintVue Yield Vaults",
+      subtitle: "DeFi-powered NFTs",
+      description:
+        "Vaults that power yield NFTs, enabling creators and fans to earn.",
+      features: [
+        "Content-backed yield",
+        "Shared earnings between creators & fans",
+        "Auto-compounding TON vault mechanics",
+      ],
+      color: "bg-pink-600",
+    },
+    {
+      title: "MintVue Marketplace",
+      subtitle: "Content-to-Asset Trading",
+      description: "Buy, sell, and explore NFTs linked to content.",
+      features: [
+        "Buy and sell content NFTs",
+        "Discover trending creators",
+        "Explore yield-linked NFTs",
+        "On-chain trading history",
+      ],
+      color: "bg-green-600",
+    },
+    {
+      title: "MintVue Creator Studio",
+      subtitle: "Creation + Analytics Suite",
+      description: "Tools for editing content, minting NFTs, and tracking growth.",
+      features: [
+        "Tools for editing content",
+        "NFT minting dashboard",
+        "Engagement insights",
+        "Revenue breakdowns",
+        "Growth strategy tools",
+      ],
+      color: "bg-yellow-600",
+    },
+    {
+      title: "MintVue Fan Pass",
+      subtitle: "Membership NFTs",
+      description:
+        "Exclusive access for fans to content, rewards, and communities.",
+      features: [
+        "Exclusive content",
+        "Early access to drops",
+        "Private livestreams",
+        "Community badges",
+        "Fan reward programs",
+      ],
+      color: "bg-orange-600",
+    },
+    {
+      title: "MintVue API / SDK",
+      subtitle: "For Developers & Partners",
+      description: "Integrate MintVue NFTs, content, and yield logic into apps.",
+      features: [
+        "Integrate MintVue NFTs in other apps",
+        "Access content metadata",
+        "Embed creator profiles",
+        "Plug into yield vault logic",
+      ],
+      color: "bg-red-600",
+    },
+    {
+      title: "MintVue Ads Engine",
+      subtitle: "Paid Ads for Creators & Brands",
+      description:
+        "Run performance ads with on-chain analytics and shared yield incentives.",
+      features: ["ROAS", "CPA", "CTR", "Yield-based ad incentives"],
+      color: "bg-blue-600",
+    },
+    {
+      title: "MintVue Data Index",
+      subtitle: "Visibility & Influence Metrics",
+      description:
+        "A universal visibility score measuring virality, creator influence, and NFT value.",
+      features: [
+        "Measures virality",
+        "Predicts asset value",
+        "Tracks creator influence",
+        "Feeds marketplace rankings",
+      ],
+      color: "bg-teal-600",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-100 font-sans">
+      <header className="text-center py-12 bg-gray-900 text-white">
+        <h1 className="text-4xl font-bold">MintVue Ecosystem</h1>
+        <p className="mt-2 text-lg">Where Content Evolves Into Asset-Class Value</p>
+      </header>
+
+      <main className="max-w-6xl mx-auto py-12 px-4 space-y-16">
+        {products.map((product, idx) => (
+          <section
+            key={idx}
+            className={`${product.color} text-white rounded-2xl p-8 shadow-lg`}
+          >
+            <h2 className="text-2xl font-bold">{product.title}</h2>
+            <h3 className="text-lg mt-1 font-semibold">{product.subtitle}</h3>
+            <p className="mt-2">{product.description}</p>
+            <ul className="mt-4 list-disc list-inside space-y-1">
+              {product.features.map((feature, i) => (
+                <li key={i}>{feature}</li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </main>
+
+      <footer className="text-center py-8 bg-gray-900 text-white">
+        &copy; 2025 MintVue. All Rights Reserved.
+      </footer>
+    </div>
+  );
+}
