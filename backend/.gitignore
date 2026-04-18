@@ -9,9 +9,11 @@ wheels/
 # Virtual environments
 .venv
 .env
+mintvue-env/
 
 #database files
 *.db
 *.sqlite3
 .logs/
 .vscode/
+logs/
