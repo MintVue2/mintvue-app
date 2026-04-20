@@ -10,7 +10,7 @@ from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.gzip import GZipMiddleware 
 from core.middleware import LoggingMiddleware
 from core.logger import logger
-from app.routers import auth, content
+from app.routers import auth, content, user
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -58,6 +58,7 @@ app.add_middleware(LoggingMiddleware)
 
 app.include_router(auth.router, prefix=settings.API_PREFIX)
 app.include_router(content.router, prefix=settings.API_PREFIX)
+app.include_router(user.router, prefix=settings.API_PREFIX)
 
 
 @app.get("/")
