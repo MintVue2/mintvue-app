@@ -3,7 +3,7 @@ from pydantic import EmailStr
 from typing import Optional
 from datetime import datetime, timedelta, timezone
 import jwt
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from uuid import UUID
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,10 +31,13 @@ class LoginRequest(SQLModel):
     email: EmailStr
 
 
-# - OAuth2 Configuration
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_PREFIX}/auth/login"
-)
+# # - OAuth2 Configuration
+# oauth2_scheme = OAuth2PasswordBearer(
+#     tokenUrl=f"{settings.API_PREFIX}/auth/login"
+# )
+
+
+auth_scheme = HTTPBearer()
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
@@ -62,7 +65,7 @@ async def get_user_by_Id(session: AsyncSession, id: UUID) -> User | None:
 
 
 async def get_current_user(
-        token: Annotated[str, Depends(oauth2_scheme)], 
+        token: Annotated[HTTPAuthorizationCredentials, Depends(auth_scheme)], 
         session: Annotated[AsyncSession, Depends(get_session)]
     ) -> User:
     """Function to get the current user logged in"""
@@ -73,7 +76,7 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token.credentials, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = UUID(payload.get("user_id"))
 
         if user_id is None:

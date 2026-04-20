@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     FERNET_KEY: str
     ENCRYPTION_PROVIDER: str
     AWS_REGION: str
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    AWS_BUCKET_NAME: str
 
     @field_validator('ALLOWED_ORIGINS')
     def parse_allowed_origins(cls, v: str) -> List[str]:

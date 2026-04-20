@@ -24,7 +24,7 @@ class EmailService:
                 "subject": subject,
                 "html": html_content,
             }
-
+            
             resend.Emails.send(params)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Email sending failed: {str(e)}")
