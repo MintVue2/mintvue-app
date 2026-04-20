@@ -6,6 +6,7 @@ from sqlmodel import select
 from uuid import UUID
 from app.models.like import Like
 from core.logger import logger
+from core.redis import redis_client
 
 LIKE_THRESHOLD=1000
 
@@ -20,6 +21,8 @@ async def create_content(req: ContentCreate, db: AsyncSession, user: User):
     await db.commit()
     await db.refresh(content)
 
+    await redis_client.delete("content:feed")
+
     return content
 
 
@@ -28,11 +31,8 @@ async def like_content(content_id: UUID, db: AsyncSession, user: User):
     content = result.scalar_one_or_none()
 
     if not content:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f'content with id: {content_id} not found'
-        )
-    
+        raise HTTPException(status_code=404, detail="Content not found")
+
     existing_like = await db.execute(
         select(Like).where(
             Like.user_id == user.id,
@@ -43,24 +43,29 @@ async def like_content(content_id: UUID, db: AsyncSession, user: User):
     if existing_like.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Already liked")
 
-    like = Like(
-        user_id=user.id,
-        content_id=content_id
-    )
-
+    # ✅ 1. create like
+    like = Like(user_id=user.id, content_id=content_id)
     db.add(like)
+
+    # ✅ 2. update DB count (SOURCE OF TRUTH)
     content.likes += 1
 
+    # ✅ 3. mint logic (DB-based)
     if content.likes >= LIKE_THRESHOLD and not content.is_mintable:
         content.is_mintable = True
 
     await db.commit()
+
+    # ⚡ 4. OPTIONAL: update Redis cache (non-critical)
+    await redis_client.delete("content:feed")
 
     return {
         "message": "Liked",
         "likes": content.likes,
         "is_mintable": content.is_mintable
     }
+
+
 
 
 async def unlike_content(content_id: UUID, db: AsyncSession, user: User):
@@ -79,11 +84,15 @@ async def unlike_content(content_id: UUID, db: AsyncSession, user: User):
     await db.delete(like)
 
     content = await db.get(Content, content_id)
-    content.likes -= 1
+    content.likes = max(content.likes - 1, 0)  # safety
 
     await db.commit()
 
+    # ⚡ invalidate cache
+    await redis_client.delete("content:feed")
+
     return {"message": "Unliked"}
+
 
 
 

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, BackgroundTasks
 from app.models.user import User
 from core.security import get_current_user
 from core.session import get_session
+from app.service.feed import get_feed
 from app.service.content import (
     create_content,
     like_content,
@@ -60,3 +61,10 @@ async def unLikeContent(
 ):
     unliked_content = await unlike_content(content_id, db, user)
     return unliked_content
+
+
+@router.get('/feed')
+async def feed(
+    db: AsyncSession = Depends(get_session)
+):
+    return await get_feed(db)

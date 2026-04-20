@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
+from core.redis import init_redis, close_redis
 from core.session import init_db
 from contextlib import asynccontextmanager
 from core.middleware import LoggingMiddleware
@@ -10,14 +11,20 @@ from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.gzip import GZipMiddleware 
 from core.middleware import LoggingMiddleware
 from core.logger import logger
-from app.routers import auth, content, user
+from app.routers import auth, content, user, nft
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """FastAPI Event Handler"""
+
+    await init_redis()
+    logger.info('Redis connection successfull....')
     await init_db()
     logger.info("Database initialized successfully.")
     logger.info("Starting application...")
     yield
+    await close_redis()
+    logger.info('Closing redis connection...')
     logger.info("Shutting down application...")
 
 
@@ -56,11 +63,15 @@ app.add_middleware(
 
 app.add_middleware(LoggingMiddleware)
 
+
+#--------Routes---------#
 app.include_router(auth.router, prefix=settings.API_PREFIX)
 app.include_router(content.router, prefix=settings.API_PREFIX)
 app.include_router(user.router, prefix=settings.API_PREFIX)
+app.include_router(nft.router, prefix=settings.API_PREFIX)
 
 
+#------health check endpoint-----#
 @app.get("/")
 async def root():
     return {"message": "Welcome to the MintVue API!"}
