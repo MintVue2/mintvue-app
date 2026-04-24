@@ -3,6 +3,7 @@ import tempfile
 import os
 
 from core.config import settings
+from core.logger import logger
 
 
 class BagsService:
@@ -10,9 +11,12 @@ class BagsService:
 
     async def launch_token(self, image_url: str, name: str, symbol: str):
         async with httpx.AsyncClient(timeout=60.0) as client:
+            logger.info(f"🎫 Launching token: name={name}, symbol={symbol}, image_url={image_url}")
+            
             # 1. Download and Temp Save (as you had it)
             img_res = await client.get(image_url)
             img_res.raise_for_status()
+            logger.info(f"✅ Downloaded image: {len(img_res.content)} bytes")
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
                 tmp.write(img_res.content)
@@ -27,8 +31,15 @@ class BagsService:
                         files={"image": f},
                         data={"name": name, "symbol": symbol}
                     )
-                launch_res.raise_for_status()
+                
+                try:
+                    launch_res.raise_for_status()
+                except httpx.HTTPStatusError as e:
+                    logger.error(f"❌ Bags API Error ({e.response.status_code}): {e.response.text}")
+                    raise
+                
                 launch_data = launch_res.json()
+                logger.info(f"✅ Token info created: {launch_data}")
 
                 # Step B: Send Transaction
                 # If Bags returns a serialized 'transaction', we send it to finalize

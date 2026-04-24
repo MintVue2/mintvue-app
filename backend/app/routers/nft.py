@@ -12,8 +12,9 @@ router = APIRouter(prefix="/nft", tags=["nft"])
 
 @router.post("/mint/{content_id}", response_model=MintResponse)
 async def mint_nft(
+    content_id: UUID,
     req: MintRequest,
     db: AsyncSession = Depends(get_session),
     user: User = Depends(get_current_user)
 ):
-    return await mint_content(req, db, user)
+    return await mint_content(content_id, req, db, user)

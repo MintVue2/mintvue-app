@@ -33,7 +33,6 @@ class NFT(SQLModel, table=True):
 class MintRequest(SQLModel):
     """Schema for minting a new NFT."""
 
-    content_id: UUID
     creator_id: UUID
     supply: int
     price: float

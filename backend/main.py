@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from core.config import settings
 from core.redis import init_redis, close_redis
 from core.session import init_db
@@ -62,6 +63,12 @@ app.add_middleware(
 )
 
 app.add_middleware(LoggingMiddleware)
+
+
+#--------Static Files---------#
+import os
+os.makedirs("mock_storage", exist_ok=True)
+app.mount("/mock_storage", StaticFiles(directory="mock_storage"), name="mock_storage")
 
 
 #--------Routes---------#

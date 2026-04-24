@@ -1,7 +1,7 @@
 import json
 from sqlmodel import select
 from app.models.content import Content
-from core.redis import redis_client
+from core.redis import get_redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 FEED_CACHE_KEY = "content:feed"
@@ -9,8 +9,9 @@ FEED_TTL = 60  # seconds (tune later)
 
 
 async def get_feed(db: AsyncSession):
+    redis = get_redis()
     # 1. Check Redis
-    cached = await redis_client.get(FEED_CACHE_KEY)
+    cached = await redis.get(FEED_CACHE_KEY)
     if cached:
         return json.loads(cached)
 
@@ -29,6 +30,7 @@ async def get_feed(db: AsyncSession):
     ]
 
     # 3. Cache it
-    await redis_client.set(FEED_CACHE_KEY, json.dumps(data), ex=FEED_TTL)
+    redis = get_redis()
+    await redis.set(FEED_CACHE_KEY, json.dumps(data), ex=FEED_TTL)
 
     return data

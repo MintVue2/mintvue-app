@@ -13,6 +13,7 @@ from app.service.content import (
     unlike_content,
     mint_status
 )
+from core.logger import logger
 
 
 router = APIRouter(
@@ -28,7 +29,9 @@ async def createContent(
     db: AsyncSession = Depends(get_session), 
     user: User = Depends(get_current_user)
 ):
+    logger.info(f"🚀 POST /content - Creating new content")
     new_content = await create_content(req, db, user)
+    logger.info(f"📋 Queueing background task: process_thumbnail({new_content.id})")
     bgt.add_task(process_thumbnail, new_content.id)
     return new_content
 

@@ -17,7 +17,7 @@ logger.add(
 # File logging with rotation
 os.makedirs("logs", exist_ok=True)
 logger.add(
-    "logs/primestores_{time:YYYY-MM-DD}.log",
+    "logs/mintvue_{time:YYYY-MM-DD}.log",
     rotation="1 day",
     retention="7 days",
     compression="zip",

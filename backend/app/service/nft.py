@@ -10,9 +10,9 @@ from uuid import UUID
 bags = BagsService()
 
 
-async def mint_content(req: MintRequest, db: AsyncSession, user: User):
+async def mint_content(content_id: UUID, req: MintRequest, db: AsyncSession, user: User):
     result = await db.execute(
-        select(Content).where(Content.id == req.content_id)
+        select(Content).where(Content.id == content_id)
     )
     content = result.scalar_one_or_none()
 
@@ -35,13 +35,14 @@ async def mint_content(req: MintRequest, db: AsyncSession, user: User):
 
     launch_result = await bags.launch_token(
         image_url=content.thumbnail_url,
-        name=f"MintVue #{content.id}",
-        symbol="MINTV"
+        name=f"MintVue #{str(content.id)[:8]}",  # Shorten to fit 32 char limit
+        symbol="MINTV",
+        description=content.caption or "MintVue NFT"
     )
 
     # 🧱 Save NFT with the Signature
     nft = NFT(
-        content_id=req.content_id,
+        content_id=content_id,
         creator_id=req.creator_id,
         contract_address=launch_result.get("mint"),
         tx_signature=launch_result.get("signature"),
@@ -61,6 +62,9 @@ async def mint_content(req: MintRequest, db: AsyncSession, user: User):
     await db.refresh(nft)
 
     return {
-        "message": "Mint successful",
-        "nft_id": str(nft.id)
+        "id": nft.id,
+        "content_id": content_id,
+        "mint_address": launch_result.get("mint"),
+        "supply": req.supply,
+        "price": req.price
     }
