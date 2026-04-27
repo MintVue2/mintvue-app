@@ -32,7 +32,6 @@ class Content(SQLModel, table=True):
 class ContentCreate(SQLModel):
     """Schema for creating new content."""
     
-    media_url: str 
     caption: Optional[str]
     description: str
 

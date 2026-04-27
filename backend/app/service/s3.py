@@ -1,63 +1,89 @@
 import os
 import shutil
-import uuid
 from uuid import UUID
 from core.config import settings
 from core.logger import logger
 
-# MVP: Using local file storage. Switch to S3 by setting STORAGE_BACKEND="s3" in .env
-STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "local")
 MOCK_STORAGE_PATH = "mock_storage"
 
 
 # ============================================================================
-# LOCAL STORAGE (MVP - Default)
+# LOCAL UPLOAD (Development)
 # ============================================================================
 
-def upload_file_local(file_path: str, content_id: UUID, content_type: str = "image/jpeg") -> str:
+def upload_local(file_path: str, content_id: UUID, file_type: str) -> str:
     """
-    Local file storage: copies file to server storage directory
-    Used for MVP. Will migrate to S3 when funding arrives.
+    Upload file to local storage for development.
+    
+    Args:
+        file_path: Path to the file to upload
+        content_id: Content/user ID for organizing files
+        file_type: Type of file - "video" or "thumbnail"
+        
+    Returns:
+        Local URL to access the file
+        
+    Raises:
+        FileNotFoundError: If source file doesn't exist
+        Exception: On file copy failure
     """
     try:
-        logger.info(f"📦 Uploading thumbnail to local storage: {file_path}")
+        logger.info(f"📦 Uploading {file_type} to local storage: {file_path}")
         
-        os.makedirs(f"{MOCK_STORAGE_PATH}/thumbnails", exist_ok=True)
+        # Create directories
+        os.makedirs(f"{MOCK_STORAGE_PATH}/{file_type}s", exist_ok=True)
 
-        file_key = f"thumbnails/{content_id}.jpg"
+        # Determine file extension
+        if file_type == "video":
+            file_key = f"{file_type}s/{content_id}.mp4"
+        else:  # thumbnail
+            file_key = f"{file_type}s/{content_id}.jpg"
+        
         dest_path = os.path.join(MOCK_STORAGE_PATH, file_key)
-
         logger.info(f"📁 Destination path: {dest_path}")
         
+        # Validate source file exists
         if not os.path.exists(file_path):
             logger.error(f"❌ Source file does not exist: {file_path}")
             raise FileNotFoundError(f"Source file not found: {file_path}")
         
+        # Copy file
         shutil.copy(file_path, dest_path)
-        logger.info(f"✅ File copied to: {dest_path}")
+        logger.info(f"✅ {file_type} copied to: {dest_path}")
 
+        # Generate local URL
         url = f"http://localhost:8000/{dest_path}"
-        logger.info(f"✅ Thumbnail URL: {url}")
+        logger.info(f"✅ {file_type} URL: {url}")
         return url
     
     except Exception as e:
-        logger.error(f"❌ Upload failed: {type(e).__name__}: {str(e)}", exc_info=True)
+        logger.error(f"❌ Local upload failed: {type(e).__name__}: {str(e)}", exc_info=True)
         raise
 
 
 # ============================================================================
-# S3 STORAGE (Post-funding)
+# AWS S3 UPLOAD (Production)
 # ============================================================================
 
-def upload_file_s3(file_path: str, content_id: UUID, content_type: str = "image/jpeg") -> str:
+def upload_to_s3(file_path: str, content_id: UUID, file_type: str) -> str:
     """
-    S3 upload: uploads file to AWS S3 bucket
-    Enable by setting STORAGE_BACKEND="s3" in .env
+    Upload file to AWS S3 bucket for production.
+    
+    Args:
+        file_path: Path to the file to upload
+        content_id: Content/user ID for organizing files
+        file_type: Type of file - "video" or "thumbnail"
+        
+    Returns:
+        S3 URL to access the file
+        
+    Raises:
+        Exception: On S3 upload failure
     """
     try:
         import boto3
         
-        logger.info(f"📦 Uploading thumbnail to S3: {file_path}")
+        logger.info(f"📦 Uploading {file_type} to S3: {file_path}")
         
         s3_client = boto3.client(
             "s3",
@@ -66,8 +92,15 @@ def upload_file_s3(file_path: str, content_id: UUID, content_type: str = "image/
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
         )
 
-        file_key = f"thumbnails/{content_id}.jpg"
+        # Determine file extension and content-type
+        if file_type == "video":
+            file_key = f"videos/{content_id}.mp4"
+            content_type = "video/mp4"
+        else:  # thumbnail
+            file_key = f"thumbnails/{content_id}.jpg"
+            content_type = "image/jpeg"
 
+        # Upload to S3
         s3_client.upload_file(
             Filename=file_path,
             Bucket=settings.AWS_BUCKET_NAME,
@@ -78,30 +111,11 @@ def upload_file_s3(file_path: str, content_id: UUID, content_type: str = "image/
             }
         )
 
+        # Generate S3 URL
         url = f"https://{settings.AWS_BUCKET_NAME}.s3.amazonaws.com/{file_key}"
-        logger.info(f"✅ Thumbnail uploaded to S3: {url}")
+        logger.info(f"✅ {file_type} uploaded to S3: {url}")
         return url
     
     except Exception as e:
         logger.error(f"❌ S3 upload failed: {type(e).__name__}: {str(e)}", exc_info=True)
         raise
-
-
-# ============================================================================
-# DYNAMIC DISPATCHER
-# ============================================================================
-
-def upload_file(file_path: str, content_id: UUID, content_type: str = "image/jpeg") -> str:
-    """
-    Upload file using configured backend (local by default for MVP)
-    """
-    if STORAGE_BACKEND == "s3":
-        return upload_file_s3(file_path, content_id, content_type)
-    else:
-        return upload_file_local(file_path, content_id, content_type)
-
-
-# Backward compatibility alias
-def upload_fake(file_path: str, content_id: UUID) -> str:
-    """Deprecated: Use upload_file() instead"""
-    return upload_file_local(file_path, content_id)

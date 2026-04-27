@@ -5,7 +5,7 @@ import os
 from uuid import UUID
 import httpx
 from app.models.content import Content, ThumbNailStatus
-from app.service.s3 import upload_file
+from app.service.s3 import upload_local
 from core.logger import logger
 
 def generate_thumbnail(video_path: str, output_path: str):
@@ -67,7 +67,7 @@ async def process_thumbnail(content_id: UUID):
 
             # upload
             logger.info(f"☁️ Uploading thumbnail to storage")
-            thumbnail_url = upload_file(thumb_path, content.id)
+            thumbnail_url = upload_local(thumb_path, content.id, "thumbnail")
             logger.info(f"✅ Thumbnail uploaded: {thumbnail_url}")
 
             # update DB
