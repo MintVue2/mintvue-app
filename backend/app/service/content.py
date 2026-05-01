@@ -1,8 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status, UploadFile
+from fastapi import HTTPException, status, UploadFile, BackgroundTasks
 from app.models.content import Content, ContentCreate
 from app.models.user import User
 from sqlmodel import select
+from app.utils.media import process_thumbnail
 from uuid import UUID
 from app.models.like import Like
 from core.logger import logger
@@ -18,174 +19,69 @@ LIKE_THRESHOLD=2
 MAX_VIDEO_SIZE = 500 * 1024 * 1024  # 500MB
 ALLOWED_VIDEO_TYPES = {"video/mp4", "video/quicktime", "video/x-msvideo"}
 ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi"}
+CHUNK_SIZE = 1024 * 1024  # 1MB chunks
 
 
-async def validate_video_upload(file: UploadFile) -> tuple[str, int]:
-    """
-    Validate uploaded video file for type, size, and format.
+async def create_content(
+    caption: str,
+    description: str,
+    video: UploadFile, 
+    db: AsyncSession, 
+    user: User, 
+    background_tasks: BackgroundTasks):
+    """Create new content with video upload (streaming)."""
+    # 1. Validate video type and extension
+    if video.content_type not in ALLOWED_VIDEO_TYPES:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported video type")
     
-    Args:
-        file: Uploaded file from multipart/form-data
-        
-    Returns:
-        tuple: (file_path, file_size)
-        
-    Raises:
-        HTTPException: 400 Bad Request if validation fails
-    """
+    ext = os.path.splitext(video.filename)[1].lower()
+    if ext not in ALLOWED_VIDEO_EXTENSIONS:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported video extension")
+
+    # 2. Stream video to temp file and validate size
+    tmp_path = None
     try:
-        logger.info(f"🎬 Validating video upload: {file.filename}")
-        
-        # Validate filename extension
-        file_name_lower = file.filename.lower()
-        has_valid_extension = any(file_name_lower.endswith(ext) for ext in ALLOWED_VIDEO_EXTENSIONS)
-        
-        if not has_valid_extension:
-            logger.error(f"❌ Invalid file extension: {file.filename}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Only MP4, MOV, and AVI files are allowed. Got: {file.filename}"
-            )
-        
-        # Validate content-type
-        if file.content_type and file.content_type not in ALLOWED_VIDEO_TYPES:
-            logger.error(f"❌ Invalid content-type: {file.content_type}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid video format. Allowed types: {', '.join(ALLOWED_VIDEO_TYPES)}"
-            )
-        
-        # Read file to temp location and validate size
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-        file_size = 0
-        
-        try:
-            while chunk := await file.read(1024 * 1024):  # Read 1MB at a time
-                file_size += len(chunk)
-                temp_file.write(chunk)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+            tmp_path = tmp.name
+            total_size = 0
+            
+            # Stream chunks instead of loading entire file
+            while chunk := await video.read(CHUNK_SIZE):
+                total_size += len(chunk)
                 
-                # Check size limit during upload
-                if file_size > MAX_VIDEO_SIZE:
-                    logger.error(f"❌ File too large: {file_size} bytes (max: {MAX_VIDEO_SIZE})")
-                    temp_file.close()
-                    os.remove(temp_file.name)
+                # Check size limit during streaming
+                if total_size > MAX_VIDEO_SIZE:
                     raise HTTPException(
                         status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                        detail=f"File size exceeds limit of {MAX_VIDEO_SIZE / (1024*1024):.0f}MB"
+                        detail=f"Video exceeds max size of 500MB"
                     )
+                
+                tmp.write(chunk)
             
-            temp_file.close()
-            
-            if file_size == 0:
-                logger.error(f"❌ Empty video file uploaded")
-                os.remove(temp_file.name)
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Uploaded file is empty"
-                )
-            
-            logger.info(f"✅ Video file validated: {file_size} bytes")
-            return temp_file.name, file_size
-        
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"❌ File read error: {type(e).__name__}: {str(e)}")
-            if os.path.exists(temp_file.name):
-                os.remove(temp_file.name)
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to read uploaded file"
-            )
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"❌ Video upload validation error: {type(e).__name__}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to validate video file"
-        )
+            logger.info(f"✅ Streamed {total_size / 1024 / 1024:.2f}MB video to {tmp_path}")
 
+        # 3. Upload to S3
+        media_url = await upload_local(tmp_path, video.filename)
 
-async def create_content(req: ContentCreate, file: UploadFile, db: AsyncSession, user: User) -> Content:
-    """
-    Create new content with file upload.
-    
-    Args:
-        req: Content metadata (caption, description) as ContentCreate schema
-        file: Video file from multipart/form-data upload
-        db: Database session
-        user: Authenticated user (UUID)
-        
-    Returns:
-        Content: Created content object with all fields
-        
-    Raises:
-        HTTPException: On validation or upload failure
-    """
-    if not file:
-        logger.error(f"❌ No file provided")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File is required"
-        )
-    
-    if not isinstance(req, ContentCreate):
-        logger.error(f"❌ Invalid request schema")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid request data"
-        )
-    
-    logger.info(f"📝 Creating content for user: {user.id}")
-    logger.info(f"📹 Video file: {file.filename}")
-    logger.info(f"📄 Caption: {req.caption}")
-    
-    # Validate and save video file
-    temp_file_path, file_size = await validate_video_upload(file)
-    
-    try:
-        # Upload video to storage
-        logger.info(f"☁️ Uploading video to storage")
-        media_url = upload_local(temp_file_path, user.id, "video")
-        logger.info(f"✅ Video uploaded: {media_url}")
-        
-        # Create content in database
+        # 4. Create DB record
         content = Content(
             creator_id=user.id,
             media_url=media_url,
-            caption=req.caption,
-            description=req.description
+            caption=caption,
+            description=description
         )
         db.add(content)
         await db.commit()
         await db.refresh(content)
-
-        logger.info(f"✅ Content created with ID: {content.id}")
-
-        # Invalidate feed cache
-        redis = get_redis()
-        await redis.delete("content:feed")
-
+        
+        # Queue thumbnail processing to run in background
+        background_tasks.add_task(process_thumbnail, content.id)
+        
         return content
-    
-    except Exception as e:
-        logger.error(f"❌ Content creation failed: {type(e).__name__}: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create content"
-        )
-    
     finally:
-        # Cleanup temp file
-        if os.path.exists(temp_file_path):
-            try:
-                os.remove(temp_file_path)
-                logger.info(f"🧹 Cleaned up temp file: {temp_file_path}")
-            except Exception as e:
-                logger.warning(f"⚠️ Failed to cleanup temp file: {str(e)}")
-
+        # Clean up temp file in background to avoid blocking
+        if tmp_path and os.path.exists(tmp_path):
+            background_tasks.add_task(os.remove, tmp_path)
 
 
 async def like_content(content_id: UUID, db: AsyncSession, user: User):

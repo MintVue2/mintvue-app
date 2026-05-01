@@ -12,7 +12,7 @@ from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.gzip import GZipMiddleware 
 from core.middleware import LoggingMiddleware
 from core.logger import logger
-from app.routers import auth, content, user, nft
+from app.routers import auth, content, user, event
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -75,8 +75,7 @@ app.mount("/mock_storage", StaticFiles(directory="mock_storage"), name="mock_sto
 app.include_router(auth.router, prefix=settings.API_PREFIX)
 app.include_router(content.router, prefix=settings.API_PREFIX)
 app.include_router(user.router, prefix=settings.API_PREFIX)
-app.include_router(nft.router, prefix=settings.API_PREFIX)
-
+app.include_router(event.router, prefix=settings.API_PREFIX)
 
 #------health check endpoint-----#
 @app.get("/")
