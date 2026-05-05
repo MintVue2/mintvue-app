@@ -1,5 +1,9 @@
 {
   "installs": {
     "uv": "0.11.8"
+  },
+  "variables": {
+    "MISE_AQUA_CHECK_POLICY": "0",
+    "MISE_VERIFY_METADATA": "0"
   }
 }
