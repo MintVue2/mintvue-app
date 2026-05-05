@@ -8,10 +8,9 @@ from uuid import UUID
 from app.models.like import Like
 from core.logger import logger
 from core.redis import get_redis
-from app.service.s3 import upload_local
+from app.service.s3 import upload
 import os
 import tempfile
-import httpx
 
 LIKE_THRESHOLD=2
 
@@ -61,7 +60,7 @@ async def create_content(
             logger.info(f"✅ Streamed {total_size / 1024 / 1024:.2f}MB video to {tmp_path}")
 
         # 3. Upload to S3
-        media_url = await upload_local(tmp_path, video.filename)
+        media_url = await upload(tmp_path, video.filename)
 
         # 4. Create DB record
         content = Content(
@@ -173,3 +172,52 @@ async def mint_status(
         "is_mintable": content.is_mintable,
         "minted": content.minted
     }
+
+
+
+# from uuid import uuid4
+# from core.config import settings
+# from app.models.content import Content, ThumbNailStatus
+# from app.service.s3 import upload
+# from app.utils.media import generate_thumbnail, full_media_pipeline
+# from core.logger import logger
+
+# async def create_content(caption, description, video, db, user, background_tasks):
+#     # 1. Immediate Validations
+#     ext = os.path.splitext(video.filename)[1].lower()
+#     if ext not in ALLOWED_VIDEO_EXTENSIONS:
+#         raise HTTPException(400, detail="Invalid extension")
+
+#     # 2. Create DB Record (This catches 400 errors in milliseconds)
+#     content_id = uuid4()
+#     # Pre-calculate the URL (Tigris URLs are deterministic)
+#     file_key = f"videos/{content_id}{ext}"
+#     media_url = f"{settings.RAILWAY_BUCKET_ENDPOINT}/{settings.RAILWAY_BUCKET_NAME}/{file_key}"
+
+#     content = Content(
+#         id=content_id,
+#         creator_id=user.id,
+#         media_url=media_url,
+#         caption=caption,
+#         description=description,
+#         thumbnail_status=ThumbNailStatus.PENDING
+#     )
+#     db.add(content)
+#     await db.commit() # FAIL HERE if the DB is unhappy. Fast 400.
+#     await db.refresh(content)
+
+#     # 3. Stream Video to Local Disk (The only slow part the user waits for)
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+#         tmp_path = tmp.name
+#         total_size = 0
+#         while chunk := await video.read(CHUNK_SIZE):
+#             total_size += len(chunk)
+#             if total_size > MAX_VIDEO_SIZE:
+#                 raise HTTPException(413, detail="Too large")
+#             tmp.write(chunk)
+
+#     # 4. Start Background Pipeline
+#     # The user is disconnected after this line.
+#     background_tasks.add_task(full_media_pipeline, tmp_path, content_id, video.content_type)
+    
+#     return content

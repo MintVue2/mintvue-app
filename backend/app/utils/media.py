@@ -5,7 +5,7 @@ import os
 from uuid import UUID
 import httpx
 from app.models.content import Content, ThumbNailStatus
-from app.service.s3 import upload_local
+from app.service.s3 import upload
 from core.logger import logger
 
 def generate_thumbnail(video_path: str, output_path: str):
@@ -14,10 +14,10 @@ def generate_thumbnail(video_path: str, output_path: str):
         "-i", video_path,
         "-ss", "00:00:01.000",
         "-vframes", "1",
-        output_path
+        output_path, "-y"
     ]
 
-    subprocess.run(command, check=True)
+    subprocess.run(command, check=True, capture_output=True)
 
 
 
@@ -67,7 +67,7 @@ async def process_thumbnail(content_id: UUID):
 
             # upload
             logger.info(f"☁️ Uploading thumbnail to storage")
-            thumbnail_url = upload_local(thumb_path, content.id, "thumbnail")
+            thumbnail_url = upload(thumb_path, content.id, "thumbnail")
             logger.info(f"✅ Thumbnail uploaded: {thumbnail_url}")
 
             # update DB
@@ -86,3 +86,45 @@ async def process_thumbnail(content_id: UUID):
             logger.error(f"❌ Thumbnail processing failed for {content_id}: {type(e).__name__}: {str(e)}", exc_info=True)
             content.thumbnail_status = ThumbNailStatus.FAILED
             await db.commit()
+
+
+
+
+# async def full_media_pipeline(tmp_path: str, content_id: UUID, video_mime_type: str):
+#     """Handles S3 Upload, Thumbnailing, and DB updates in the background."""
+#     thumb_path = tmp_path.replace(".mp4", ".jpg")
+    
+#     async with AsyncSessionLocal() as db:
+#         try:
+#             # 1. Update DB to Processing
+#             content = await db.get(Content, content_id)
+#             if not content: return
+#             content.thumbnail_status = ThumbNailStatus.PROCESSING
+#             await db.commit()
+
+#             # 2. Upload Video to Tigris (Egress)
+#             # We do this first so the video is safe in the cloud
+#             await upload(tmp_path, content_id, "video")
+
+#             # 3. Generate Thumbnail locally
+#             generate_thumbnail_sync(tmp_path, thumb_path)
+
+#             # 4. Upload Thumbnail
+#             thumb_url = await upload(thumb_path, content_id, "thumbnail")
+
+#             # 5. Final DB Update
+#             content.thumbnail_url = thumb_url
+#             content.thumbnail_status = ThumbNailStatus.READY
+#             await db.commit()
+            
+#         except Exception as e:
+#             logger.error(f"Pipeline failed for {content_id}: {e}")
+#             # Try to mark as failed if possible
+#             content = await db.get(Content, content_id)
+#             if content:
+#                 content.thumbnail_status = ThumbNailStatus.FAILED
+#                 await db.commit()
+#         finally:
+#             # Clean up local temp files
+#             for p in [tmp_path, thumb_path]:
+#                 if os.path.exists(p): os.remove(p)

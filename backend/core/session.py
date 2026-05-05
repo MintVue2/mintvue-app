@@ -8,7 +8,7 @@ PROD_DB = settings.DATABASE_URL_PROD
 
 
 engine = create_async_engine(
-    DATABASE_URL, 
+    PROD_DB, 
     echo=True
 )
 

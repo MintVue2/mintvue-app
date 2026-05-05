@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: str
     AWS_BUCKET_NAME: str 
     REDIS_URL: str
+    RAILWAY_BUCKET_NAME: str
+    RAILWAY_BUCKET_REGION: str
+    RAILWAY_BUCKET_ACCESS_KEY: str
+    RAILWAY_BUCKET_SECRET_KEY: str
+    RAILWAY_BUCKET_ENDPOINT: str
 
     @field_validator('ALLOWED_ORIGINS')
     def parse_allowed_origins(cls, v: str) -> List[str]:
