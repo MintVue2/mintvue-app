@@ -10,9 +10,7 @@ class User(SQLModel, table=True):
     
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     email: EmailStr = Field(index=True, unique=True)
-    name: Optional[str]
-    encrypted_private_key: str
-    wallet_address: str = Field(unique=True, index=True)
+    wallet_address: str = Field(unique=True, index=True, nullable=True)
     joined_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -21,6 +19,5 @@ class UserResponse(SQLModel):
     
     id: UUID
     email: EmailStr
-    name: Optional[str]
-    wallet_address: str
+    wallet_address: Optional[str]
     joined_at: datetime

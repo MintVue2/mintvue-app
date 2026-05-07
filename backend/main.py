@@ -1,7 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from core.config import settings
 from core.redis import init_redis, close_redis
 from core.session import init_db
@@ -16,7 +15,8 @@ from app.routers import (
     auth, 
     content, 
     user, 
-    event
+    event,
+    mint
 )
 
 @asynccontextmanager
@@ -49,15 +49,14 @@ app.add_middleware(
     allowed_hosts=['*'],
 )   
 
-# app.add_middleware(
-#     HTTPSRedirectMiddleware
-# )
+app.add_middleware(LoggingMiddleware)
+# app.add_middleware(HTTPSRedirectMiddleware)
 
 app.add_middleware(
     GZipMiddleware, 
     minimum_size=1000,
     compresslevel=5
-    )
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -67,20 +66,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.add_middleware(LoggingMiddleware)
-
-
-#--------Static Files---------#
-import os
-os.makedirs("mock_storage", exist_ok=True)
-app.mount("/mock_storage", StaticFiles(directory="mock_storage"), name="mock_storage")
-
-
 #--------Routes---------#
 app.include_router(auth.router, prefix=settings.API_PREFIX)
 app.include_router(content.router, prefix=settings.API_PREFIX)
 app.include_router(user.router, prefix=settings.API_PREFIX)
 app.include_router(event.router, prefix=settings.API_PREFIX)
+app.include_router(mint.router, prefix=settings.API_PREFIX)
+
 
 #------health check endpoint-----#
 @app.get("/")

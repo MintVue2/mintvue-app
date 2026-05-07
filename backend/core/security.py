@@ -19,7 +19,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 class SignupRequest(SQLModel):
     email: EmailStr
-    name: Optional[str] = None
 
 
 class AuthResponse(SQLModel):
@@ -30,11 +29,6 @@ class AuthResponse(SQLModel):
 class LoginRequest(SQLModel):
     email: EmailStr
 
-
-# # - OAuth2 Configuration
-# oauth2_scheme = OAuth2PasswordBearer(
-#     tokenUrl=f"{settings.API_PREFIX}/auth/login"
-# )
 
 
 auth_scheme = HTTPBearer()

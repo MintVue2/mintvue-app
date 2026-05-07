@@ -1,16 +1,16 @@
 from sqlmodel import SQLModel, Field
 from uuid import uuid4, UUID
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Optional
 
 
-class TransactionType(str, Enum):
+class TransactionStatus(StrEnum):
     """Enum for transaction types."""
 
-    DEPOSIT = "deposit"
-    WITHDRAWAL = "withdrawal"
-    TRANSFER = "transfer"
+    PENDING = "pending"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 
@@ -19,8 +19,6 @@ class Transaction(SQLModel, table=True):
     
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     nft_id: UUID = Field(foreign_key="nft.id")
-    buyer_id: UUID = Field(foreign_key="user.id")
-    seller_id: UUID = Field(foreign_key="user.id")
     amount: float
-    tx_hash: Optional[str]
+    status: TransactionStatus = Field(default=TransactionStatus.PENDING)
     created_at: datetime = Field(default_factory=datetime.utcnow)

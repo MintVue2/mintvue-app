@@ -1,5 +1,4 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.content import ContentCreate
 from uuid import UUID
 from typing import Optional
 from fastapi import (
@@ -16,7 +15,7 @@ from core.security import get_current_user
 from core.session import get_session
 from app.service.feed import get_feed
 from app.service.content import (
-    create_content,
+    Upload_content,
     like_content,
     unlike_content,
     mint_status
@@ -32,20 +31,15 @@ router = APIRouter(
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
 async def upload_content(
-    background_tasks: BackgroundTasks,
+    # background_tasks: BackgroundTasks,
+    video: UploadFile = File(...),
     caption: str = Form(...),
     description: str = Form(...), 
-    video: UploadFile = File(...), 
     db: AsyncSession = Depends(get_session), 
     user: User = Depends(get_current_user)
     ):
-    content = await create_content(
-        caption,
-        description,
-        video,
-        db,
-        user,
-        background_tasks
+    content = await Upload_content(
+        video, caption, description, db, user
     )
     return content
 

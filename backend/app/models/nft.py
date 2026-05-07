@@ -16,11 +16,7 @@ class NFT(SQLModel, table=True):
     
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     content_id: UUID = Field(foreign_key="content.id", index=True)
-    creator_id: UUID = Field(foreign_key="user.id")
-    
-    # 🆕 Add this for the Solscan link
-    tx_signature: Optional[str] = Field(default=None) 
-    
+    creator_id: UUID = Field(foreign_key="user.id")    
     token_id: Optional[str]
     contract_address: Optional[str] # This will be the "Mint Address"
     metadata_url: Optional[str]

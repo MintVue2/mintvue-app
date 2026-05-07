@@ -1,9 +1,8 @@
-from uuid import UUID
+from uuid import uuid4
 from core.config import settings
 from core.logger import logger
 from starlette.concurrency import run_in_threadpool
 import boto3
-from botocore.exceptions import ClientError
 
 
 
@@ -18,24 +17,26 @@ def _get_s3_client():
     )
 
 
-def _upload_to_s3(file_path: str, content_id: UUID, file_type: str) -> str:
+def _upload_to_s3(file_obj: str, file_type: str) -> str:
     """Upload to S3/Railway bucket."""
-
     s3_client = _get_s3_client()
-    if file_type == "video":
-        file_key = f"videos/{content_id}.mp4"
-        content_type = "video/mp4"
-    else:
-        file_key = f"thumbnails/{content_id}.jpg"
-        content_type = "image/jpeg"
+
+    _id = uuid4()
+
+    file_key = f"videos/{_id}.mp4"
+    content_type = "video/mp4"
+   
 
     try:
         logger.debug("📦 Attempting file upload to s3/Tigris...")
-        s3_client.upload_file(
-            Filename=file_path,
-            Bucket=settings.AWS_BUCKET_NAME,
+        s3_client.upload_fileobj(
+            Fileobj=file_obj,
+            Bucket=settings.RAILWAY_BUCKET_NAME,
             Key=file_key,
-            ExtraArgs={"ContentType": content_type}
+            ExtraArgs={
+                "ContentType": content_type,
+                "ContentDisposition": "inline"
+            }
         )
 
         url = f"{settings.RAILWAY_BUCKET_ENDPOINT}/{settings.RAILWAY_BUCKET_NAME}/{file_key}"
@@ -44,16 +45,16 @@ def _upload_to_s3(file_path: str, content_id: UUID, file_type: str) -> str:
 
     except Exception as e:
         logger.error(f"❌ S3 upload failed: {type(e).__name__}: {str(e)}", exc_info=True)
-        raise ClientError(f"S3 upload failed: {str(e)}")
+        raise Exception(f"S3 upload failed: {str(e)}")
     
 
 
-async def upload(file_path: str, content_id: UUID, file_type: str) -> str:
+async def upload(file_path: str, file_type: str) -> str:
     """Async wrapper for S3 upload."""
+
     S3_url = await run_in_threadpool(
         _upload_to_s3, 
-        file_path, 
-        content_id, 
+        file_path,
         file_type
     )
     return S3_url

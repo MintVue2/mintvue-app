@@ -14,13 +14,13 @@ logger.add(
            "<cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
 )
 
-# File logging with rotation
-os.makedirs("logs", exist_ok=True)
-logger.add(
-    "logs/mintvue_{time:YYYY-MM-DD}.log",
-    rotation="1 day",
-    retention="7 days",
-    compression="zip",
-    level="DEBUG",
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{line} - {message}"
-)
+# # File logging with rotation
+# os.makedirs("logs", exist_ok=True)
+# logger.add(
+#     "logs/mintvue_{time:YYYY-MM-DD}.log",
+#     rotation="1 day",
+#     retention="7 days", 
+#     compression="zip",
+#     level="DEBUG",
+#     format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{line} - {message}"
+# )

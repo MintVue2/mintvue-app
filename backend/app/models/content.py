@@ -2,13 +2,7 @@ from sqlmodel import SQLModel, Field
 from datetime import datetime
 from typing import Optional
 from uuid import uuid4, UUID
-from enum import Enum
-
-class ThumbNailStatus(str, Enum):
-    PENDING = 'pending'
-    PROCESSING = 'processing'
-    READY = 'ready'
-    FAILED = 'failed'
+from core.config import settings
 
 
 class Content(SQLModel, table=True):
@@ -17,8 +11,6 @@ class Content(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     creator_id: UUID = Field(foreign_key="user.id", index=True)
     media_url: str
-    thumbnail_url: str | None = None
-    thumbnail_status: ThumbNailStatus = Field(default=ThumbNailStatus.PENDING)
     caption: Optional[str]
     description: str
     likes: int = 0
@@ -28,14 +20,22 @@ class Content(SQLModel, table=True):
     nft_id: Optional[UUID] = Field(default=None, foreign_key="nft.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+    @property
+    def media_url_path(self):
+        if self.media_url:
+            return f'{settings.RAILWAY_BUCKET_ENDPOINT}/{settings.RAILWAY_BUCKET_NAME}/{self.media_url.split("/")[-1]}'
 
-class ContentCreate(SQLModel):
-    """Schema for creating new content."""
-    
+
+
+class ContentResponse(SQLModel):
+    """Schema for content response."""
+
+    id: UUID
+    media_url: str
+    created_at: datetime
     caption: Optional[str]
     description: str
-
-
-class ContentResponse(Content):
-    """Schema for content response."""
-    ...
+    likes: int
+    views: int
+    is_mintable: bool
+    minted: bool
