@@ -9,6 +9,7 @@ export function Footer() {
 
           {/* Brand */}
           <div>
+          
             <h3 className="text-2xl font-semibold">
               Mintvue
             </h3>
