@@ -9,16 +9,19 @@ const videos = [
     creator: "@davidwaves",
     likes: "12.4K",
     comments: "1.2K",
+    src: "/feeds/unction.mp4",
   },
   {
     creator: "@urbanamira",
     likes: "8.1K",
     comments: "604",
+    src: "/feeds/unction.mp4",
   },
   {
     creator: "@culturehub",
     likes: "21K",
     comments: "3.8K",
+    src: "/feeds/unction.mp4",
   },
 ];
 
@@ -59,11 +62,22 @@ export function FeedPreview() {
               "
             >
 
-              {/* fake video bg */}
-              <div className="absolute inset-0 bg-gradient-to-b from-zinc-800 to-black" />
+              {/* video bg */}
+              <div className="absolute inset-0 overflow-hidden rounded-[2.5rem]">
+                <video
+                  className="h-full w-full object-cover scale-[1.02]"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                >
+                  <source src={video.src} type="video/mp4" />
+                </video>
+              </div>
 
               {/* overlay */}
-              <div className="absolute inset-0 bg-black/20" />
+              {/* <div className="absolute inset-0 bg-black/20" /> */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
               {/* play button */}
               <div className="absolute inset-0 flex items-center justify-center">

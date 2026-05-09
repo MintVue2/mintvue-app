@@ -84,7 +84,7 @@ export function PreviewSection() {
               "
             >
               <video
-                src="/hero-video.mp4"
+                src="/feeds/hero-video.mp4"
                 autoPlay
                 muted
                 loop
@@ -109,7 +109,7 @@ export function PreviewSection() {
               "
             >
               <video
-                src="/hero-video.mp4"
+                src="/feeds/hero-video.mp4"
                 autoPlay
                 muted
                 loop

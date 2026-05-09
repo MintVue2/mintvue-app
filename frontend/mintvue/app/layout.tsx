@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
+
 
 export const metadata: Metadata = {
   title: "MintVue",
@@ -17,7 +17,6 @@ export default function RootLayout({
     <html
       lang="en">
       <body className={`${GeistSans.className} bg-black text-white antialiased`}>
-        <Header />
         {children}
       </body>
     </html>

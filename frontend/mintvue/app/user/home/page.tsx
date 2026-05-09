@@ -1,14 +1,21 @@
+"use client";
+
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { FloatingUpload } from "@/components/dashboard/floating-upload";
+import { VideoFeed } from "@/components/feed/video-feed";
+import { FeedNavigation } from "@/components/feed/feed-navigation";
+
 export default function UserDashboard() {
   return (
-    <main className="min-h-screen bg-black text-white p-10">
+    <main className="bg-black text-white h-screen overflow-y-scroll snap-y snap-mandatory">
 
-      <h1 className="text-5xl font-semibold">
-        Your Feed
-      </h1>
+      <DashboardHeader />
 
-      <p className="mt-4 text-zinc-400">
-        Welcome to Mintvue.
-      </p>
+      <VideoFeed />
+
+      <FeedNavigation />
+
+      <FloatingUpload />
 
     </main>
   );

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { apiFetch } from "@/lib/api";
 
 export function AuthForm() {
 
@@ -16,42 +17,40 @@ export function AuthForm() {
 
   const handleSubmit = async () => {
 
-    try {
+  try {
 
-      setLoading(true);
+    setLoading(true);
 
-      const endpoint =
-        mode === "login"
-          ? "http://localhost:8000/login"
-          : "http://localhost:8000/register";
+    const endpoint =
+      mode === "login"
+        ? "/auth/login"
+        : "/auth/signup";
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-        }),
-      });
+    const data = await apiFetch<{
+      access_token: string;
+    }>(endpoint, {
+      method: "POST",
 
-      const data = await response.json();
+      body: JSON.stringify({
+        email,
+      }),
+    });
+    console.log(data);  
 
-      // assuming backend returns JWT
-      localStorage.setItem("token", data.access_token);
+    document.cookie = `token=${data.access_token}; path=/;`;
 
-      router.push("/users/me");
+    router.push("/user/home");
 
-    } catch (error) {
+  } catch (error) {
 
-      console.error(error);
+    console.error(error);
 
-    } finally {
+  } finally {
 
-      setLoading(false);
+    setLoading(false);
 
-    }
-  };
+  }
+};
 
   return (
     <div className="space-y-5">

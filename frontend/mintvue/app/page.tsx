@@ -6,10 +6,12 @@ import { FeedPreview } from "@/components/marketing/feed-preview";
 import { EventsSection } from "@/components/marketing/events-section";
 import { FinalCTA } from "@/components/marketing/final-cta";
 import { Footer } from "@/components/layout/footer";
+import { Header } from "@/components/layout/header";
 
 export default function Home() {
   return (
     <main>
+      <Header />
       <HeroSection />
       <TrustedBy />
       <PreviewSection />
