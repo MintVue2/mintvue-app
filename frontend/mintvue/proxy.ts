@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(
+export function proxy(
   request: NextRequest
 ) {
 
@@ -12,7 +12,7 @@ export function middleware(
     request.nextUrl.pathname.startsWith("/auth");
 
   const isProtectedRoute =
-    request.nextUrl.pathname.startsWith("/users");
+    request.nextUrl.pathname.startsWith("/user");
 
   /*
     If user is logged in and tries to visit auth page
@@ -20,7 +20,7 @@ export function middleware(
   if (token && isAuthPage) {
 
     return NextResponse.redirect(
-      new URL("/users/home", request.url)
+      new URL("/user/home", request.url)
     );
   }
 
@@ -40,6 +40,6 @@ export function middleware(
 export const config = {
   matcher: [
     "/auth/:path*",
-    "/users/:path*",
+    "/user/:path*",
   ],
 };
