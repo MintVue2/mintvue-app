@@ -20,7 +20,6 @@ from app.service.content import (
     unlike_content,
     mint_status
 )
-from core.logger import logger
 
 
 router = APIRouter(
@@ -76,6 +75,7 @@ async def unLikeContent(
 
 @router.get('/feed')
 async def feed(
-    db: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
     return await get_feed(db)

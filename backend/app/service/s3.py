@@ -10,10 +10,10 @@ def _get_s3_client():
     """Helper for returning an S3/Tigris client."""
     return boto3.client(
         "s3",
-        region_name=settings.RAILWAY_BUCKET_REGION,
-        aws_access_key_id=settings.RAILWAY_BUCKET_ACCESS_KEY,
-        aws_secret_access_key=settings.RAILWAY_BUCKET_SECRET_KEY,
-        endpoint_url=settings.RAILWAY_BUCKET_ENDPOINT
+        region_name=settings.AWS_DEFAULT_REGION,
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        endpoint_url=settings.AWS_ENDPOINT_URL
     )
 
 
@@ -31,7 +31,7 @@ def _upload_to_s3(file_obj: str, file_type: str) -> str:
         logger.debug("📦 Attempting file upload to s3/Tigris...")
         s3_client.upload_fileobj(
             Fileobj=file_obj,
-            Bucket=settings.RAILWAY_BUCKET_NAME,
+            Bucket=settings.AWS_S3_BUCKET_NAME,
             Key=file_key,
             ExtraArgs={
                 "ContentType": content_type,
@@ -39,7 +39,7 @@ def _upload_to_s3(file_obj: str, file_type: str) -> str:
             }
         )
 
-        url = f"{settings.RAILWAY_BUCKET_ENDPOINT}/{settings.RAILWAY_BUCKET_NAME}/{file_key}"
+        url = f"{settings.VIDEO_PROXY_URL}/{file_key}"
         logger.success(f"✅ File upload successfull: {url}")
         return url
 
