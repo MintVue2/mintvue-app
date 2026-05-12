@@ -1,21 +1,24 @@
-from sqlmodel import SQLModel
-from pydantic import EmailStr
-from typing import Optional
 from datetime import datetime, timedelta, timezone
-import jwt
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from tarfile import data_filter
+from typing import Annotated, Optional
 from uuid import UUID
+
+import jwt
 from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from core.session import get_session
-from typing import Annotated
+from sqlmodel import SQLModel
+
 from app.models import User
 from core.config import settings
+from core.session import get_session
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 
 class SignupRequest(SQLModel):
     email: EmailStr
@@ -30,7 +33,6 @@ class LoginRequest(SQLModel):
     email: EmailStr
 
 
-
 auth_scheme = HTTPBearer()
 
 
@@ -42,12 +44,15 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-    to_encode.update({
-        "exp": expire,
-        "user_id": data.get("user_id")
-    })
+    to_encode.update({"exp": expire, "user_id": data.get("user_id")})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def decode_access_token(token: str) -> dict:
+    """Function to decode access token"""
+    data = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    return data
 
 
 async def get_user_by_Id(session: AsyncSession, id: UUID) -> User | None:
@@ -57,13 +62,12 @@ async def get_user_by_Id(session: AsyncSession, id: UUID) -> User | None:
     return result.scalar_one_or_none()
 
 
-
 async def get_current_user(
-        token: Annotated[HTTPAuthorizationCredentials, Depends(auth_scheme)], 
-        session: Annotated[AsyncSession, Depends(get_session)]
-    ) -> User:
+    token: Annotated[HTTPAuthorizationCredentials, Depends(auth_scheme)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> User:
     """Function to get the current user logged in"""
-    
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -75,7 +79,7 @@ async def get_current_user(
 
         if user_id is None:
             raise credentials_exception
-        
+
     except Exception:
         raise credentials_exception
 

@@ -10,6 +10,7 @@ dependencies = [
     "asyncpg>=0.31.0",
     "boto3>=1.42.90",
     "cryptography>=46.0.7",
+    "dependency-injector>=4.49.0",
     "fastapi>=0.135.3",
     "httpx>=0.28.1",
     "jinja2>=3.1.6",
