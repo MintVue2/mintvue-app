@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: str = Field(...)
     AWS_ENDPOINT_URL: str = Field(...)
     VIDEO_PROXY_URL: str = Field(...)
+    CROSSMINT_SS_API_KEY: str = Field(...)
+    CROSSMINT_SIGNER_SECRET: str = Field(...)
+    CROSSMINT_SIGNER_ADDRESS: str = Field(...)
 
     @field_validator("ALLOWED_ORIGINS")
     def parse_allowed_origins(cls, v: str) -> List[str]:
