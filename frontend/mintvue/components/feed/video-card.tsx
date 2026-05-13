@@ -9,7 +9,6 @@ type Props = {
   caption: string;
   src: string;
   likes: number;
-  // initialLiked: boolean;
 };
 
 export function VideoCard({
