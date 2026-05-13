@@ -14,43 +14,42 @@ export function AuthForm() {
   const [email, setEmail] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
+    const trimmedEmail = email.trim();
 
-  try {
+    if (!trimmedEmail) {
+      setError("Email is required.");
+      return;
+    }
 
-    setLoading(true);
+    try {
+      setError(null);
+      setLoading(true);
 
-    const endpoint =
-      mode === "login"
-        ? "/auth/login"
-        : "/auth/signup";
+      const endpoint =
+        mode === "login"
+          ? "/auth/login"
+          : "/auth/signup";
 
-    const data = await apiFetch<{
-      access_token: string;
-    }>(endpoint, {
-      method: "POST",
+      const data = await apiFetch<{
+        access_token: string;
+      }>(endpoint, {
+        method: "POST",
+        body: JSON.stringify({ email: trimmedEmail }),
+      });
 
-      body: JSON.stringify({
-        email,
-      }),
-    });
-    console.log(data);  
+      document.cookie = `token=${data.access_token}; path=/;`;
 
-    document.cookie = `token=${data.access_token}; path=/;`;
+      router.push("/user/home");
 
-    router.push("/user/home");
-
-  } catch (error) {
-
-    console.error(error);
-
-  } finally {
-
-    setLoading(false);
-
-  }
-};
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -79,6 +78,12 @@ export function AuthForm() {
           "
         />
       </div>
+
+      {error && (
+        <p className="rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-400">
+          {error}
+        </p>
+      )}
 
       <Button
         onClick={handleSubmit}

@@ -4,82 +4,83 @@ import { VideoActions } from "./video-actions";
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
+  id: string;
   creator: string;
   caption: string;
   src: string;
-  likes: string;
-  comments: string;
+  likes: number;
 };
 
 export function VideoCard({
+  id,
   creator,
   caption,
   src,
   likes,
-  comments,
 }: Props) {
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-const [visible, setVisible] = useState(false);
-useEffect(() => {
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      setVisible(entry.isIntersecting);
-    },
-    {
-      threshold: 0.7,
-    }
-  );
+  const [visible, setVisible] = useState(false);
 
-  if (videoRef.current) {
-    observer.observe(videoRef.current);
-  }
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setVisible(entry.isIntersecting);
+      },
+      {
+        threshold: 0.7,
+      }
+    );
 
-  return () => {
     if (videoRef.current) {
-      observer.unobserve(videoRef.current);
+      observer.observe(videoRef.current);
     }
-  };
-}, []);
 
-useEffect(() => {
-  if (!videoRef.current) return;
+    return () => {
+      if (videoRef.current) {
+        observer.unobserve(videoRef.current);
+      }
+    };
+  }, []);
 
-  if (visible) {
-    videoRef.current.play();
-  } else {
-    videoRef.current.pause();
-  }
-}, [visible]);
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    if (visible) {
+      videoRef.current.play();
+    } else {
+      videoRef.current.pause();
+    }
+  }, [visible]);
 
   return (
     <div
-  className="
-    relative
-    h-[calc(100svh-4rem)]
-    w-full
-    snap-start
-    overflow-hidden
-    bg-black
-    flex justify-center
-  "
->
+      className="
+        relative
+        h-[calc(100svh-4rem)]
+        w-full
+        snap-start
+        overflow-hidden
+        bg-black
+        flex justify-center
+      "
+    >
 
       {/* VIDEO */}
-    <video
-  ref={videoRef}
-  muted
-  loop
-  playsInline
-  preload="metadata"
-  className="
-    h-full w-full object-cover
-    md:rounded-2xl
-  "
->
-  <source src={src} type="video/mp4" />
-</video>
+      <video
+        ref={videoRef}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        className="
+          h-full w-full object-cover
+          md:rounded-2xl
+        "
+      >
+        <source src={src} type="video/mp4" />
+      </video>
 
       {/* OVERLAY */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
@@ -108,8 +109,8 @@ useEffect(() => {
 
         {/* RIGHT */}
         <VideoActions
-          likes={likes}
-          comments={comments}
+          contentId={id}
+          initialLikes={likes}
         />
 
       </div>
