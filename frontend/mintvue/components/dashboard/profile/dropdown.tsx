@@ -3,18 +3,25 @@
 import { LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { apiFetch, clearToken } from "@/lib/api";
 
 export function ProfileDropdown() {
 
   const [open, setOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
 
-  const handleLogout = () => {
-
-    localStorage.removeItem("token");
-
-    router.push("/auth");
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await apiFetch("/auth/logout", { method: "POST" });
+    } catch {
+      // Even if the backend call fails, clear locally and redirect
+    } finally {
+      clearToken();
+      router.push("/auth");
+    }
   };
 
   // ✅ CLOSE ON OUTSIDE CLICK
@@ -103,6 +110,7 @@ export function ProfileDropdown() {
 
           <button
             onClick={handleLogout}
+            disabled={loggingOut}
             className="
               flex w-full items-center gap-3
               px-4 py-4
@@ -110,10 +118,11 @@ export function ProfileDropdown() {
               text-red-400
               transition
               hover:bg-red-500/10
+              disabled:opacity-50
             "
           >
             <LogOut className="h-4 w-4" />
-            Logout
+            {loggingOut ? "Logging out..." : "Logout"}
           </button>
 
         </div>

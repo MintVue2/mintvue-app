@@ -37,16 +37,19 @@ export function UploadModal({
     formData.append("description", description);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/content`,
+        `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_API_PREFIX}/content`,
         {
           method: "POST",
 
           headers: {
             Authorization: `Bearer ${token}`,
-        },
+          },
 
           body: formData,
         }

@@ -2,23 +2,64 @@
 
 import {
   Heart,
-  MessageCircle,
   Share2,
 } from "lucide-react";
+import { useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 type Props = {
-  likes: string;
-  comments: string;
+  contentId: string;
+  initialLikes: number;
 };
 
 export function VideoActions({
-  likes,
-  comments,
+  contentId,
+  initialLikes,
 }: Props) {
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(initialLikes);
+  const [pending, setPending] = useState(false);
+
+  const toggleLike = async () => {
+    if (pending) return;
+
+    setPending(true);
+
+    const wasLiked = liked;
+
+    // Optimistic update
+    setLiked(!wasLiked);
+    setLikes((prev) => (wasLiked ? prev - 1 : prev + 1));
+
+    try {
+      if (wasLiked) {
+        await apiFetch(`/content/${contentId}/like`, { method: "DELETE" });
+      } else {
+        await apiFetch(`/content/${contentId}/like`, { method: "POST" });
+      }
+    } catch (error) {
+      // Revert on failure
+      setLiked(wasLiked);
+      setLikes((prev) => (wasLiked ? prev + 1 : prev - 1));
+      console.error(error);
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const formatCount = (n: number) => {
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+    return String(n);
+  };
+
   return (
     <div className="flex flex-col items-center gap-6">
 
-      <button className="flex flex-col items-center gap-2">
+      <button
+        onClick={toggleLike}
+        disabled={pending}
+        className="flex flex-col items-center gap-2"
+      >
         <div
           className="
             flex h-14 w-14 items-center justify-center
@@ -27,28 +68,13 @@ export function VideoActions({
             backdrop-blur-xl
           "
         >
-          <Heart className="h-6 w-6" />
+          <Heart
+            className={`h-6 w-6 transition-colors ${liked ? "fill-red-500 text-red-500" : ""}`}
+          />
         </div>
 
         <span className="text-sm">
-          {likes}
-        </span>
-      </button>
-
-      <button className="flex flex-col items-center gap-2">
-        <div
-          className="
-            flex h-14 w-14 items-center justify-center
-            rounded-full
-            bg-black/40
-            backdrop-blur-xl
-          "
-        >
-          <MessageCircle className="h-6 w-6" />
-        </div>
-
-        <span className="text-sm">
-          {comments}
+          {formatCount(likes)}
         </span>
       </button>
 
