@@ -7,12 +7,12 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
-from app.routers import auth, content, event, mint, user
+from app.routers import auth, content, event, mint, user, wallet
 from core.config import settings
 from core.logger import logger
 from core.middleware import LoggingMiddleware
 from core.redis import init_redis, shutdown_redis
-from core.session import init_db
+# from core.session import init_db
 
 
 @asynccontextmanager
@@ -21,8 +21,8 @@ async def lifespan(app: FastAPI):
 
     await init_redis()
     logger.info("Redis connection successfull....")
-    await init_db()
-    logger.info("Database initialized successfully.")
+    # await init_db()
+    logger.info("Initialized datbase connection....")
     logger.info("Starting application...")
     yield
     # Shutdown DI resources (redis etc.)
@@ -68,6 +68,7 @@ app.include_router(content.router, prefix=settings.API_PREFIX)
 app.include_router(user.router, prefix=settings.API_PREFIX)
 app.include_router(event.router, prefix=settings.API_PREFIX)
 app.include_router(mint.router, prefix=settings.API_PREFIX)
+app.include_router(wallet.router, prefix=settings.API_PREFIX)
 
 
 # ------health check endpoint-----#

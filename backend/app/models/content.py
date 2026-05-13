@@ -17,13 +17,7 @@ class Content(SQLModel, table=True):
     views: int = 0
     is_mintable: bool = Field(default=False)
     minted: bool = Field(default=False)
-    nft_id: Optional[UUID] = Field(default=None, foreign_key="nft.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    @property
-    def media_url_path(self):
-        if self.media_url:
-            return f'{settings.RAILWAY_BUCKET_ENDPOINT}/{settings.RAILWAY_BUCKET_NAME}/{self.media_url.split("/")[-1]}'
 
 
 

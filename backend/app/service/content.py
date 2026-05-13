@@ -11,7 +11,7 @@ from app.service.s3 import upload
 from typing import Optional
 
 LIKE_THRESHOLD=2
-MAX_VIDEO_SIZE = 500 * 1024 * 1024  # 500MB
+MAX_VIDEO_SIZE = 200 * 1024 * 1024  # 200MB
 
 async def Upload_content(
     video_file: UploadFile,
@@ -77,8 +77,8 @@ async def like_content(content_id: UUID, db: AsyncSession, user: User):
     await db.commit()
 
     # ⚡ 4. OPTIONAL: update Redis cache (non-critical)
-    redis = get_redis()
-    await redis.delete("content:feed")
+    # redis = get_redis()
+    # await redis.delete("content:feed")
 
     return {
         "message": "Liked",
@@ -110,8 +110,8 @@ async def unlike_content(content_id: UUID, db: AsyncSession, user: User):
     await db.commit()
 
     # ⚡ invalidate cache
-    redis = get_redis()
-    await redis.delete("content:feed")
+    # redis = get_redis()
+    # await redis.delete("content:feed")
 
     return {"message": "Unliked"}
 
