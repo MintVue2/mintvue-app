@@ -12,7 +12,7 @@ from core.config import settings
 from core.logger import logger
 from core.middleware import LoggingMiddleware
 from core.redis import init_redis, shutdown_redis
-from core.session import init_db
+# from core.session import init_db
 
 
 @asynccontextmanager
@@ -21,8 +21,8 @@ async def lifespan(app: FastAPI):
 
     await init_redis()
     logger.info("Redis connection successfull....")
-    await init_db()
-    logger.info("Database initialized successfully.")
+    # await init_db()
+    logger.info("Initialized datbase connection....")
     logger.info("Starting application...")
     yield
     # Shutdown DI resources (redis etc.)
