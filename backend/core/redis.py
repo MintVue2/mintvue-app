@@ -11,7 +11,7 @@ class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
 
     # Redis Connection Pool Provider
-    redis_pool = providers.Resource(
+    redis_pool = providers.Singleton(
         redis.from_url, url=config.redis_url, decode_responses=True
     )
 
@@ -42,6 +42,15 @@ async def shutdown_redis():
     global container
     if not container:
         return
+
+    redis_client = None
+    try:
+        redis_client = container.redis_pool()
+    except Exception:
+        redis_client = None
+
+    if redis_client is not None:
+        await redis_client.aclose()
 
     shutdown_resources = getattr(container, "shutdown_resources", None)
     if shutdown_resources:

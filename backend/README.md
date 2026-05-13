@@ -63,6 +63,8 @@ POST /auth/login
 └── Return JWT
 ```
 
+Google sign-in is available at `POST /auth/login/google` and accepts a Google ID token or credential payload. The backend verifies the token against `GOOGLE_OAUTH_CLIENT_ID`, creates the user on first login, and returns the same JWT response.
+
 ## Core Features
 
 ### Content Management

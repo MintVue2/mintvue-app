@@ -7,10 +7,11 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
-from app.service.auth import login, logout, signUp
+from app.service.auth import login, login_with_google, logout, signUp
 from core.redis import Container
 from core.security import (
     AuthResponse,
+    GoogleLoginRequest,
     LoginRequest,
     SignupRequest,
     auth_scheme,
@@ -31,6 +32,14 @@ async def signup_user(req: SignupRequest, db: AsyncSession = Depends(get_session
 async def login_user(req: LoginRequest, db: AsyncSession = Depends(get_session)):
     """Endpoint to login a user"""
     return await login(req, db)
+
+
+@router.post("/login/google", response_model=AuthResponse)
+async def login_google_user(
+    req: GoogleLoginRequest, db: AsyncSession = Depends(get_session)
+):
+    """Endpoint to login or register a user with Google."""
+    return await login_with_google(req, db)
 
 
 @router.post("/logout")
