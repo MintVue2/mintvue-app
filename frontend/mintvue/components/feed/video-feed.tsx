@@ -46,16 +46,22 @@ export function VideoFeed() {
 
   return (
     <div className="flex flex-col space-y-10">
-      {videos.map((video) => (
+      {videos.map((video) => {
+         const absoluteVideoUrl = video.media_url.startsWith('http') 
+        ? video.media_url 
+        : `https://${video.media_url}`;
+      
+      return(
         <VideoCard
           key={video.id}
           id={video.id}
-          src={video.media_url}
+          src={absoluteVideoUrl}
           caption={video.caption ?? ""}
           creator={`@user_${video.creator_id.slice(0, 6)}`}
           likes={video.likes}
         />
-      ))}
+      );
+      })}
     </div>
   );
 }

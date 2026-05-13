@@ -34,10 +34,10 @@ export function useNotifications() {
       }
     };
 
-    fetchNotifications();
+    // fetchNotifications();
 
-    const interval = setInterval(fetchNotifications, 15000);
-    return () => clearInterval(interval);
+    // const interval = setInterval(fetchNotifications, 15000);
+    // return () => clearInterval(interval);
   }, []);
 
   return {
