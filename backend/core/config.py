@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str = Field(...)
     EMAIL_FROM: str = Field(...)
     RESEND_API_KEY: str = Field(...)
+    GOOGLE_OAUTH_CLIENT_SECRET: str = Field(...)
+    GOOGLE_OAUTH_CLIENT_ID: str = Field(...)
     REDIS_URL: str = Field(...)
     AWS_S3_BUCKET_NAME: str = Field(...)
     AWS_DEFAULT_REGION: str = Field(...)

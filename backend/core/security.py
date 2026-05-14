@@ -33,6 +33,14 @@ class LoginRequest(SQLModel):
     email: EmailStr
 
 
+class GoogleLoginRequest(SQLModel):
+    credential: str | None = None
+    id_token: str | None = None
+
+    def token(self) -> str:
+        return self.id_token or self.credential or ""
+
+
 auth_scheme = HTTPBearer()
 
 
