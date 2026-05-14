@@ -48,6 +48,7 @@ export function UploadModal({
 
     setPhase("uploading");
 
+    
     try {
       const token = document.cookie
         .split("; ")
