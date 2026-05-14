@@ -1,28 +1,22 @@
 "use client";
 
-import {
-  Heart,
-  Share2,
-} from "lucide-react";
+import { Heart, Share2 } from "lucide-react";
 import { useState } from "react";
 import { apiFetch } from "@/lib/api";
 
 type Props = {
   contentId: string;
   initialLikes: number;
+  initialLiked: boolean;
 };
 
-export function VideoActions({
-  contentId,
-  initialLikes,
-}: Props) {
-  const [liked, setLiked] = useState(false);
+export function VideoActions({ contentId, initialLikes, initialLiked }: Props) {
+  const [liked, setLiked] = useState(initialLiked);
   const [likes, setLikes] = useState(initialLikes);
   const [pending, setPending] = useState(false);
 
   const toggleLike = async () => {
     if (pending) return;
-
     setPending(true);
 
     const wasLiked = liked;
@@ -54,43 +48,26 @@ export function VideoActions({
 
   return (
     <div className="flex flex-col items-center gap-6">
-
       <button
         onClick={toggleLike}
         disabled={pending}
-        className="flex flex-col items-center gap-2"
+        className="flex cursor-pointer flex-col items-center gap-2 transition-opacity hover:opacity-80 disabled:opacity-60"
       >
-        <div
-          className="
-            flex h-14 w-14 items-center justify-center
-            rounded-full
-            bg-black/40
-            backdrop-blur-xl
-          "
-        >
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-black/40 backdrop-blur-xl">
           <Heart
-            className={`h-6 w-6 transition-colors ${liked ? "fill-red-500 text-red-500" : ""}`}
+            className={`h-6 w-6 transition-colors ${
+              liked ? "fill-red-500 text-red-500" : ""
+            }`}
           />
         </div>
-
-        <span className="text-sm">
-          {formatCount(likes)}
-        </span>
+        <span className="text-sm">{formatCount(likes)}</span>
       </button>
 
-      <button>
-        <div
-          className="
-            flex h-14 w-14 items-center justify-center
-            rounded-full
-            bg-black/40
-            backdrop-blur-xl
-          "
-        >
+      <button className="cursor-pointer transition-opacity hover:opacity-80">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-black/40 backdrop-blur-xl">
           <Share2 className="h-6 w-6" />
         </div>
       </button>
-
     </div>
   );
 }

@@ -1,49 +1,49 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status, UploadFile
-from app.models.content import Content
-from app.models.user import User
-from sqlmodel import select
-from uuid import UUID
-from app.models.like import Like
-from core.logger import logger
-from core.redis import get_redis
-from app.service.s3 import upload
 from typing import Optional
+from uuid import UUID
 
-LIKE_THRESHOLD=2
+from fastapi import HTTPException, UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
+
+from app.models.content import Content
+from app.models.like import Like
+from app.models.user import User
+from app.service.s3 import upload
+from core.logger import logger
+
+LIKE_THRESHOLD = 2
 MAX_VIDEO_SIZE = 200 * 1024 * 1024  # 200MB
+
 
 async def Upload_content(
     video_file: UploadFile,
     caption: Optional[str],
     description: str,
     db: AsyncSession,
-    user: User
-):   
-    if video_file.size > MAX_VIDEO_SIZE:
+    user: User,
+):
+    # size can be None for streaming uploads, so guard before comparing
+    if video_file.size is not None and video_file.size > MAX_VIDEO_SIZE:
         raise HTTPException(status_code=413, detail="File too large")
 
     try:
-        logger.info(f'Attempting video uplod for: {video_file.filename}')
-        url = await upload(video_file.file, video_file.content_type)
+        logger.info(f"Attempting video upload for: {video_file.filename}")
+        # content_type can be None — fall back to a safe default
+        content_type = video_file.content_type or "video/mp4"
+        url = await upload(video_file.file, content_type)
 
         content = Content(
-            creator_id=user.id,
-            caption=caption,
-            description=description,
-            media_url=url
+            creator_id=user.id, caption=caption, description=description, media_url=url
         )
         db.add(content)
         await db.commit()
         await db.refresh(content)
-        logger.success(f'Content created successfully with ID: {content.id}')
+        logger.success(f"Content created successfully with ID: {content.id}")
         return content
-    
+
     except Exception as e:
         logger.error(f"Upload failed: {type(e).__name__}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Upload failed")
-
-
 
 
 async def like_content(content_id: UUID, db: AsyncSession, user: User):
@@ -54,47 +54,39 @@ async def like_content(content_id: UUID, db: AsyncSession, user: User):
         raise HTTPException(status_code=404, detail="Content not found")
 
     existing_like = await db.execute(
-        select(Like).where(
-            Like.user_id == user.id,
-            Like.content_id == content_id
-        )
+        select(Like).where(Like.user_id == user.id, Like.content_id == content_id)
     )
 
     if existing_like.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Already liked")
 
-    # ✅ 1. create like
+    # 1. create like
     like = Like(user_id=user.id, content_id=content_id)
     db.add(like)
 
-    # ✅ 2. update DB count (SOURCE OF TRUTH)
+    # 2. update DB count (SOURCE OF TRUTH)
     content.likes += 1
 
-    # ✅ 3. mint logic (DB-based)
+    # 3. mint logic (DB-based)
     if content.likes >= LIKE_THRESHOLD and not content.is_mintable:
         content.is_mintable = True
 
     await db.commit()
 
-    # ⚡ 4. OPTIONAL: update Redis cache (non-critical)
+    # 4. OPTIONAL: update Redis cache (non-critical)
     # redis = get_redis()
     # await redis.delete("content:feed")
 
     return {
         "message": "Liked",
         "likes": content.likes,
-        "is_mintable": content.is_mintable
+        "is_mintable": content.is_mintable,
     }
-
-
 
 
 async def unlike_content(content_id: UUID, db: AsyncSession, user: User):
     result = await db.execute(
-        select(Like).where(
-            Like.user_id == user.id,
-            Like.content_id == content_id
-        )
+        select(Like).where(Like.user_id == user.id, Like.content_id == content_id)
     )
 
     like = result.scalar_one_or_none()
@@ -105,26 +97,24 @@ async def unlike_content(content_id: UUID, db: AsyncSession, user: User):
     await db.delete(like)
 
     content = await db.get(Content, content_id)
-    content.likes = max(content.likes - 1, 0)  # safety
+
+    # guard: content could theoretically be None if deleted between requests
+    if not content:
+        raise HTTPException(status_code=404, detail="Content not found")
+
+    content.likes = max(content.likes - 1, 0)  # safety floor at 0
 
     await db.commit()
 
-    # ⚡ invalidate cache
+    # invalidate cache
     # redis = get_redis()
     # await redis.delete("content:feed")
 
     return {"message": "Unliked"}
 
 
-
-
-async def mint_status(
-    content_id: UUID,
-    db: AsyncSession
-):
-    result = await db.execute(
-        select(Content).where(Content.id == content_id)
-    )
+async def mint_status(content_id: UUID, db: AsyncSession):
+    result = await db.execute(select(Content).where(Content.id == content_id))
     content = result.scalar_one_or_none()
 
     if not content:
@@ -133,5 +123,5 @@ async def mint_status(
     return {
         "likes": content.likes,
         "is_mintable": content.is_mintable,
-        "minted": content.minted
+        "minted": content.minted,
     }

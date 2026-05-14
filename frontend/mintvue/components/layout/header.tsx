@@ -8,7 +8,6 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 
 export function Header() {
-
   const [open, setOpen] = useState(false);
 
   return (
@@ -21,11 +20,8 @@ export function Header() {
         backdrop-blur-xl
       "
     >
-
       <Container>
-
         <div className="flex h-16 items-center justify-between">
-
           {/* Logo */}
           <motion.div
             initial={{ opacity: 0, y: -5 }}
@@ -44,15 +40,22 @@ export function Header() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8 text-sm text-zinc-300">
-            <a href="#" className="hover:text-white transition">Feed</a>
-            <a href="#" className="hover:text-white transition">Explore</a>
-            <a href="#" className="hover:text-white transition">Events</a>
-            <a href="#" className="hover:text-white transition">Marketplace</a>
+            <a href="#" className="cursor-pointer hover:text-white transition">
+              Feed
+            </a>
+            <a href="#" className="cursor-pointer hover:text-white transition">
+              Explore
+            </a>
+            <a href="#" className="cursor-pointer hover:text-white transition">
+              Events
+            </a>
+            <a href="#" className="cursor-pointer hover:text-white transition">
+              Marketplace
+            </a>
           </nav>
 
           {/* Right Side */}
           <div className="flex items-center gap-3">
-
             {/* Get Started */}
             <Link href="/auth">
               <button
@@ -80,19 +83,13 @@ export function Header() {
                 rounded-lg
                 border border-white/10
                 bg-white/5
+                cursor-pointer
               "
             >
-              {open ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
-
           </div>
-
         </div>
-
       </Container>
 
       {/* Mobile Dropdown */}
@@ -106,31 +103,37 @@ export function Header() {
           "
         >
           <div className="flex flex-col gap-4 p-5 text-sm text-zinc-300">
-
-            <a href="#" className="hover:text-white">Feed</a>
-            <a href="#" className="hover:text-white">Explore</a>
-            <a href="#" className="hover:text-white">Events</a>
-            <a href="#" className="hover:text-white">Marketplace</a>
+            <a href="#" className="cursor-pointer hover:text-white">
+              Feed
+            </a>
+            <a href="#" className="cursor-pointer hover:text-white">
+              Explore
+            </a>
+            <a href="#" className="cursor-pointer hover:text-white">
+              Events
+            </a>
+            <a href="#" className="cursor-pointer hover:text-white">
+              Marketplace
+            </a>
 
             <Link href="/auth">
               <button
                 className="
-                  mt-2
-                  w-full
-                  rounded-xl
-                  bg-purple-600
-                  py-2
-                  text-white
-                "
+                    mt-2
+                    w-full
+                    rounded-xl
+                    bg-purple-600
+                    py-2
+                    text-white
+                    cursor-pointer
+                  "
               >
                 Get Started
               </button>
             </Link>
-
           </div>
         </div>
       )}
-
     </header>
   );
 }

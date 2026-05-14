@@ -4,11 +4,9 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 
-
 export function HeroSection() {
   return (
     <section className="relative flex min-h-screen items-center overflow-hidden">
-      
       {/* Background Video */}
       {/* <video
         autoPlay
@@ -31,7 +29,6 @@ export function HeroSection() {
 
       <Container className="relative z-10">
         <div className="mx-auto max-w-4xl text-center">
-
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -60,17 +57,15 @@ export function HeroSection() {
             transition={{ delay: 0.15 }}
             className="
               mt-8
-              text-5xl
+              text-4xl
               font-semibold
               tracking-tight
+              sm:text-5xl
               md:text-7xl
             "
           >
-            Own The{" "}
-            <span className="text-purple-500">
-              Moments
-            </span>{" "}
-            The Internet Loves
+            Own The <span className="text-purple-500">Moments</span> The
+            Internet Loves
           </motion.h1>
 
           {/* Description */}
@@ -82,52 +77,56 @@ export function HeroSection() {
               mx-auto
               mt-6
               max-w-2xl
-              text-lg
+              text-base
               leading-relaxed
               text-zinc-400
+              sm:text-lg
             "
           >
-            Mintvue helps creators transform viral videos, events,
-            and digital experiences into collectible assets.
+            Mintvue helps creators transform viral videos, events, and digital
+            experiences into collectible assets.
           </motion.p>
-
 
           {/* Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 }}
-            className="mt-10 flex items-center justify-center gap-4"
+            className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4"
           >
-            <Button size="lg"
+            <Button
+              size="lg"
               className="
-                 rounded-xl
+                w-full
+                rounded-xl
                 bg-purple-600
-                px-4 py-2
+                px-6 py-3
                 text-sm
                 hover:bg-purple-700
                 transition
-              ">
+                sm:w-auto
+              "
+            >
               Explore Feed
             </Button>
             <Button
               size="lg"
               className="
+                w-full
                 rounded-xl
                 bg-purple-600
-                px-4 py-2
+                px-6 py-3
                 text-sm
                 hover:bg-purple-700
                 transition
+                sm:w-auto
               "
             >
               Watch Demo
             </Button>
           </motion.div>
-
         </div>
       </Container>
     </section>
   );
 }
-

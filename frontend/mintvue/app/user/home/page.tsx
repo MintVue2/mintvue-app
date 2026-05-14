@@ -7,8 +7,7 @@ import { FeedNavigation } from "@/components/feed/feed-navigation";
 
 export default function UserDashboard() {
   return (
-    <main className="bg-black text-white h-screen overflow-y-scroll snap-y snap-mandatory">
-
+    <main className="bg-black text-white h-screen overflow-y-scroll snap-y snap-mandatory scroll-pt-16">
       <DashboardHeader />
 
       <VideoFeed />
@@ -16,7 +15,6 @@ export default function UserDashboard() {
       <FeedNavigation />
 
       <FloatingUpload />
-
     </main>
   );
 }

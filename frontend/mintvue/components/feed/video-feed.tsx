@@ -15,11 +15,15 @@ type FeedItem = {
   is_mintable: boolean;
   minted: boolean;
   created_at: string;
+  liked_by_me: boolean;
 };
 
 export function VideoFeed() {
   const [videos, setVideos] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [muted, setMuted] = useState(true);
+
+  const toggleMute = () => setMuted((prev) => !prev);
 
   useEffect(() => {
     apiFetch<FeedItem[]>("/content/feed")
@@ -45,22 +49,25 @@ export function VideoFeed() {
   }
 
   return (
-    <div className="flex flex-col space-y-10">
+    <div className="flex flex-col">
       {videos.map((video) => {
-         const absoluteVideoUrl = video.media_url.startsWith('http') 
-        ? video.media_url 
-        : `https://${video.media_url}`;
-      
-      return(
-        <VideoCard
-          key={video.id}
-          id={video.id}
-          src={absoluteVideoUrl}
-          caption={video.caption ?? ""}
-          creator={`@user_${video.creator_id.slice(0, 6)}`}
-          likes={video.likes}
-        />
-      );
+        const absoluteVideoUrl = video.media_url.startsWith("http")
+          ? video.media_url
+          : `https://${video.media_url}`;
+
+        return (
+          <VideoCard
+            key={video.id}
+            id={video.id}
+            src={absoluteVideoUrl}
+            caption={video.caption ?? ""}
+            creator={`@user_${video.creator_id.slice(0, 6)}`}
+            likes={video.likes}
+            initialLiked={video.liked_by_me}
+            isMuted={muted}
+            onToggleMute={toggleMute}
+          />
+        );
       })}
     </div>
   );

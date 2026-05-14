@@ -19,6 +19,7 @@ async def create_wallet(
     """Endpoint to generate a new wallet for the user."""
 
     if user.wallet_address:
+        logger.warning(f'wallet already exists for user: {user.email}')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Wallet already exists for this user."
@@ -36,7 +37,7 @@ async def create_wallet(
       return {"wallet_address": wallet_address}
 
     except Exception as e:
-        logger.error(f"Error generating wallet: {str(e)}", exc_info=True)
+        logger.error(f"Error generating wallet: {type(e).__name__}", exc_info=True)
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

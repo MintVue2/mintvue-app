@@ -2,14 +2,13 @@
 
 import Image from "next/image";
 import { Bell, Search } from "lucide-react";
-import { ProfileDropdown } from "./profile/dropdown";
+
 import { useState } from "react";
 import { useNotifications } from "@/hooks/use-notifications";
 import { MobileSidebarTrigger } from "./mobile-sidebar-trigger";
 import { NotificationDropdown } from "./notifications/dropdown";
 
 export function DashboardHeader() {
-
   const [openSearch, setOpenSearch] = useState(false);
   const { count } = useNotifications();
 
@@ -21,7 +20,6 @@ export function DashboardHeader() {
         bg-zinc-950
       "
     >
-
       <div
         className="
           mx-auto flex h-16 max-w-7xl
@@ -29,13 +27,10 @@ export function DashboardHeader() {
           px-4
         "
       >
-
         {/* LEFT */}
         <div className="flex items-center gap-3">
-
-
-  {/* MOBILE SIDEBAR */}
-  <MobileSidebarTrigger />
+          {/* MOBILE SIDEBAR */}
+          <MobileSidebarTrigger />
 
           <Image
             src="/ml.png"
@@ -48,12 +43,10 @@ export function DashboardHeader() {
           <span className="text-lg font-semibold tracking-tight text-white">
             Mintvue
           </span>
-
         </div>
 
         {/* CENTER (DESKTOP SEARCH) */}
         <div className="hidden md:flex">
-
           <div
             className="
               flex items-center gap-3
@@ -63,7 +56,6 @@ export function DashboardHeader() {
               px-4 py-2
             "
           >
-
             <Search className="h-4 w-4 text-zinc-400" />
 
             <input
@@ -76,14 +68,11 @@ export function DashboardHeader() {
                 text-white
               "
             />
-
           </div>
-
         </div>
 
         {/* RIGHT */}
         <div className="flex items-center gap-3">
-
           {/* Mobile search toggle (optional UX upgrade) */}
           <button
             onClick={() => setOpenSearch(!openSearch)}
@@ -94,6 +83,7 @@ export function DashboardHeader() {
               rounded-full
               border border-white/10
               bg-white/5
+              cursor-pointer
             "
           >
             <Search className="h-4 w-4" />
@@ -101,34 +91,27 @@ export function DashboardHeader() {
 
           {/* Notifications */}
           <div className="relative">
+            <NotificationDropdown />
 
-
-  <NotificationDropdown />
-
-  {count > 0 && (
-    <div
-      className="
+            {count > 0 && (
+              <div
+                className="
         absolute -right-1 -top-1
         flex h-5 min-w-5 items-center justify-center
         rounded-full
         bg-red-500 px-1 text-[10px] font-semibold
       "
-    >
-      {count}
-    </div>
-  )}
-</div>
-
-          <ProfileDropdown />
-
+              >
+                {count}
+              </div>
+            )}
+          </div>
         </div>
-
       </div>
 
       {/* MOBILE SEARCH DROPDOWN */}
       {openSearch && (
         <div className="md:hidden border-t border-white/10 bg-zinc-950 px-4 py-3">
-
           <div
             className="
               flex items-center gap-3
@@ -138,7 +121,6 @@ export function DashboardHeader() {
               px-4 py-2
             "
           >
-
             <Search className="h-4 w-4 text-zinc-400" />
 
             <input
@@ -151,12 +133,9 @@ export function DashboardHeader() {
                 text-white
               "
             />
-
           </div>
-
         </div>
       )}
-
     </header>
   );
 }
