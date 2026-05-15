@@ -18,7 +18,7 @@ from core.session import get_session
 router = APIRouter(prefix="/content", tags=["content"])
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def upload_content(
     # background_tasks: BackgroundTasks,
     video: UploadFile = File(...),

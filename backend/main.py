@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.routers import auth, content, event, mint, user, wallet
 from core.config import settings
@@ -50,7 +51,8 @@ app.add_middleware(
 )
 
 app.add_middleware(LoggingMiddleware)
-app.add_middleware(HTTPSRedirectMiddleware)
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+# app.add_middleware(HTTPSRedirectMiddleware)
 
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 
