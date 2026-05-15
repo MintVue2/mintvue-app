@@ -50,7 +50,7 @@ app.add_middleware(
 )
 
 app.add_middleware(LoggingMiddleware)
-# app.add_middleware(HTTPSRedirectMiddleware)
+app.add_middleware(HTTPSRedirectMiddleware)
 
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { AuthForm } from "./auth-form";
 import { SocialAuth } from "./social-auth";
 
+
 export function AuthCard() {
   return (
     <motion.div
